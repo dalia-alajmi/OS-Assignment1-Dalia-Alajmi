@@ -29,16 +29,19 @@ class Process implements Runnable {
     private int burstTime; // Total time the process requires to complete (in milliseconds)
     private int timeQuantum; // Time slice (time quantum) allowed per CPU access (in milliseconds)
     private int priority;
+   private int waitingTime = 0;
+private int lastExecutionTime = 0; 
     private int remainingTime; // Time left for the process to finish its execution
 
     // Constructor to initialize the process with name, burst time, and time quantum
+    
    public Process(String name, int burstTime, int timeQuantum, int priority) {
         this.name = name;
         this.burstTime = burstTime;
         this.timeQuantum = timeQuantum;
         this.remainingTime = burstTime; // Initially, remaining time is equal to the burst time
        this.priority=priority;
-       
+       this.lastExecutionTime = 0;
     }
 
     // This method will be called when the thread for this process is started
@@ -141,8 +144,22 @@ class Process implements Runnable {
     }
     public int getPriority() {
     return priority;
-}}
+}
+public void addWaitingTime(int time) {
+        this.waitingTime += time;
+    }
 
+    public int getWaitingTime() {
+        return waitingTime;
+    }
+
+    public void setLastExecutionTime(int time) {
+        this.lastExecutionTime = time;
+    }
+
+    public int getLastExecutionTime() {
+        return lastExecutionTime;
+    }
     // Check if the process has finished (i.e., no remaining time)
     public boolean isFinished() {
         return remainingTime <= 0;
@@ -222,10 +239,14 @@ public class SchedulerSimulation {
                           "╚════════════════════════════════════════════════════════════════════════════════╝" + 
                           Colors.RESET + "\n");
         int contextSwitchCount = 0;
+        int currentTime = 0;
         // Loop to manage the scheduling of processes
         while (!processQueue.isEmpty()) {
+             Thread currentThread = processQueue.poll();
+            Process currentProcess = processMap.get(currentThread);
+currentProcess.addWaitingTime(currentTime - currentProcess.getLastExecutionTime());
             // Get the next thread from the queue (FIFO)
-            Thread currentThread = processQueue.poll(); // Dequeues the next thread
+            // Dequeues the next thread
             contextSwitchCount++;
             
             // Print the current process queue (list of process IDs in the queue)
@@ -250,6 +271,8 @@ public class SchedulerSimulation {
             try {
                 // Wait for the thread to finish its time quantum before continuing to the next process
                 currentThread.join();
+                currentTime += Math.min(currentProcess.getTimeQuantum(), currentProcess.getRemainingTime());
+currentProcess.setLastExecutionTime(currentTime);
             } catch (InterruptedException e) {
                 System.out.println("Main thread interrupted.");
             }
@@ -285,6 +308,9 @@ public class SchedulerSimulation {
                           "╚════════════════════════════════════════════════════════════════════════════════╝" + 
                           Colors.RESET + "\n");
         System.out.println(Colors.CYAN + "Total Context Switches: " + contextSwitchCount + Colors.RESET);
+        for (Process p : processMap.values()) {
+    System.out.println(Colors.CYAN + "Process " + p.getName() + " Waiting Time: " + p.getWaitingTime() + " ms" + Colors.RESET);
+}
     }
     
     // Method to add a process to the queue and map, while printing a "ready" message
