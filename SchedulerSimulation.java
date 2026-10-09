@@ -28,6 +28,7 @@ class Process implements Runnable {
     private String name; // Name of the process
     private int burstTime; // Total time the process requires to complete (in milliseconds)
     private int timeQuantum; // Time slice (time quantum) allowed per CPU access (in milliseconds)
+   //feature 1 : process priority  implementation added 
     private int priority;
    private int waitingTime = 0;
 private int lastExecutionTime = 0; 
@@ -238,6 +239,7 @@ public class SchedulerSimulation {
         System.out.println(Colors.BOLD + Colors.GREEN + 
                           "╚════════════════════════════════════════════════════════════════════════════════╝" + 
                           Colors.RESET + "\n");
+        //featuer 3:process waiting time calculation 
         int contextSwitchCount = 0;
         int currentTime = 0;
         // Loop to manage the scheduling of processes
